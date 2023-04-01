@@ -1,0 +1,75 @@
+
+from Color import Color
+
+class Handler():
+    def __init__(self, processor):
+        self.processor = processor
+
+    async def start(self, update, context):
+        chat_id = update.effective_chat.id
+        response = self.processor.start(chat_id)
+        msg = await context.bot.send_message(chat_id=chat_id, text=response)
+        self.processor.register_message(chat_id, update.message.id)
+        self.processor.register_message(chat_id, msg.id)
+
+    async def new(self, update, context):
+        chat_id = update.effective_chat.id
+        request = update.message.text[4:].strip()
+        response, status = self.processor.new(chat_id, request)
+        self.processor.register_message(chat_id, update.message.id)
+        msg = await context.bot.send_message(chat_id=chat_id, text=response)
+        if status:
+            self.processor.register_message(chat_id, msg.id)
+            return
+        await self._clear_history(context.bot, chat_id)
+        self.processor.register_message(chat_id, msg.id)
+
+    async def select(self, update, context):
+        chat_id = update.effective_chat.id
+        request = update.message.text[7:].strip()
+        response, status = self.processor.select(chat_id, request)
+        self.processor.register_message(chat_id, update.message.id)
+        if status:
+            msg = await context.bot.send_message(chat_id=chat_id, text=response)
+            self.processor.register_message(chat_id, msg.id)
+            return
+        await self._clear_history(context.bot, chat_id)
+        await self._restore_history(context.bot, chat_id, response)
+
+    async def active(self, update, context):
+        chat_id = update.effective_chat.id
+        response = self.processor.active(chat_id)
+        msg = await context.bot.send_message(chat_id=chat_id, text=response)
+        self.processor.register_message(chat_id, update.message.id)
+        self.processor.register_message(chat_id, msg.id)
+
+    async def debug(self, update, context):
+        chat_id = update.effective_chat.id
+        response = str(self.processor)
+        msg = await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+        self.processor.register_message(chat_id, update.message.id)
+        self.processor.register_message(chat_id, msg.id)
+
+    async def echo(self, update, context):
+        chat_id = update.effective_chat.id
+        request = update.message.text
+        response = self.processor.query(update.effective_chat.id, request)
+        msg = await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+        self.processor.register_message(chat_id, update.message.id)
+        self.processor.register_message(chat_id, msg.id)
+
+    async def _clear_history(self, bot, chat_id):
+        for message_id in self.processor.get_client_messages(chat_id):
+            Color.timestamp()
+            print('deleting message', message_id)
+            await bot.delete_message(chat_id, message_id)
+        self.processor.clear_client_messages(chat_id)
+
+    async def _restore_history(self, bot, chat_id, messages):
+        for message in messages:
+            Color.timestamp()
+            print('restoring message', message)
+            text = '>>> ' + message.request + '\n\n' + message.response
+            msg = await bot.send_message(chat_id=chat_id, text=text)
+            self.processor.register_message(chat_id, msg.id)
+
