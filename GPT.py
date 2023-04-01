@@ -106,6 +106,18 @@ class GPT():
         client.current_session.add_message(request, response)
         return response
 
+    def help(self):
+        return 'help:\n' \
+            '\n' \
+            '/start' \
+            '  register user\n' \
+            '/new [session_name]\n' \
+            '  create new chat session with [session_name]\n' \
+            '/select [session_name]\n' \
+            '  select other session by [session_name]\n' \
+            '/active\n' \
+            '  list active chat sessions'
+
     def register_message(self, client_id, message_id):
         self.chat_data[client_id].register_message(message_id)
 

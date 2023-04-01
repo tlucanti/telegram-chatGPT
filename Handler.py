@@ -43,6 +43,13 @@ class Handler():
         self.processor.register_message(chat_id, update.message.id)
         self.processor.register_message(chat_id, msg.id)
 
+    async def help(self, update, context):
+        chat_id = update.effective_chat.id
+        response = self.processor.help()
+        msg = await context.bot.send_message(chat_id=chat_id, text=response)
+        self.processor.register_message(chat_id, update.message.id)
+        self.processor.register_message(chat_id, msg.id)
+
     async def debug(self, update, context):
         chat_id = update.effective_chat.id
         response = str(self.processor)
@@ -54,8 +61,9 @@ class Handler():
         chat_id = update.effective_chat.id
         request = update.message.text
         response = self.processor.query(update.effective_chat.id, request)
+        await context.bot.delete_message(chat_id, update.message.id)
+        response = '>>> ' + request + '\n\n' + response
         msg = await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
-        self.processor.register_message(chat_id, update.message.id)
         self.processor.register_message(chat_id, msg.id)
 
     async def _clear_history(self, bot, chat_id):
