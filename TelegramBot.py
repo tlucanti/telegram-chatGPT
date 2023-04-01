@@ -6,6 +6,16 @@ from telegram import Update
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, ContextTypes, CommandHandler
 from Handler import Handler
 from GPT import GPT
+import traceback
+
+#logging.basicConfig(
+#    format="[%(asctime)s]: %(message)s",
+#    level=logging.INFO
+#)
+logging.basicConfig(
+    format="[%(asctime)s]: %(message)s",
+    level=logging.ERROR
+)
 
 class TelegramBot():
     def __init__(self, handler):
@@ -33,6 +43,14 @@ class TelegramBot():
         Color.OK('application built')
         return app
 
+    @staticmethod
+    async def _error_handler(update, context):
+        Color.FAILED(context.error)
+        #print(Color._Red)
+        #traceback.print_tb(context.error.__traceback__)
+        #print(Color._Reset)
+        raise context.exception
+
     def _set_handlers(self, handler):
         start_handler = CommandHandler('start', handler.start)
         new_session_handler = CommandHandler('new', handler.new)
@@ -48,6 +66,7 @@ class TelegramBot():
         self.application.add_handler(help_handler)
         self.application.add_handler(debug_handler)
         self.application.add_handler(echo_handler)
+        self.application.add_error_handler(self._error_handler)
         Color.OK('handlers set')
 
 

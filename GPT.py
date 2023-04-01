@@ -6,6 +6,13 @@ class GPT():
     STATUS_OK = 0x0
     STATUS_ERR = 0x1
 
+    ExceptionType = None
+
+    class GPTerror(ValueError):
+        def __init__(self, message):
+            super().__init__(message)
+            self.message = message
+
     class Message():
         def __init__(self, request, response):
             self.request = request
@@ -26,10 +33,6 @@ class GPT():
             return f'Session: {self.messages}'
 
     class Client():
-        E_OK = 0x0
-        E_SESSION_EXISTS = 0x1
-        E_SESSION_NOT_EXISTS = 0x2
-
         def __init__(self, id):
             self.id = id
             self.sessions = dict()
@@ -39,18 +42,18 @@ class GPT():
         def add_session(self, name):
             self.current_session = name
             if name in self.sessions:
-                return self.E_SESSION_EXISTS
+                raise GPT.GPTerror(f'session `{name}` already exists')
             self.sessions[name] = GPT.Session(name)
             self.current_session = self.sessions[name]
-            return self.E_OK
 
         def select_session(self, name):
             if name not in self.sessions:
-                return self.E_SESSION_NOT_EXISTS
+                raise GPT.GPTerror(f'session `{name}` does not exists')
             self.current_session = self.sessions[name]
-            return self.E_OK
 
         def remove_session(self, name):
+            if name not in self.sessions:
+                raise GPT.GPTerror(f'session `{name}` does not exist')
             del self.sessions[name]
 
         def register_message(self, message_id):
@@ -60,46 +63,52 @@ class GPT():
             return f'Client: {self.sessions}'
 
     def __init__(self):
+        self.ExceptionType = self.GPTerror
         self.chat_data = dict()
 
     def start(self, client_id):
-        Color.timestamp()
-        print(Color.Y('NEW CLIENT') + Color.W(f' : {client_id}'))
-        if client_id in self.chat_data:
-            return 'you are already registered'
+        self._assert_not_registered(client_id)
         self.chat_data[client_id] = self.Client(client_id)
-        return 'здарова че'
+        response = 'здарова че'
+        Color.timestamp()
+        print(Color.P('NEW CLIENT') + Color.W(f' : {client_id}'))
+        return response
 
     def new(self, client_id, session_name):
-        Color.timestamp()
+        self._assert_registered(client_id)
         client = self.chat_data[client_id]
-        if client.add_session(session_name):
-            return f'session `{session_name}` already exists', self.STATUS_ERR
-        print(Color.W('new session:'), session_name)
-        return f'session `{session_name}` created', self.STATUS_OK
+        client.add_session(session_name)
+        response = f'session `{session_name}` created', self.STATUS_OK
+        Color.timestamp()
+        print(Color.Y('new session:'), session_name)
+        return response
 
     def select(self, client_id, session_name):
+        self._assert_registered(client_id)
+        client = self.chat_data[client_id]
+        client.select_session(session_name)
+        response = client.current_session.messages
         Color.timestamp()
         print(client_id, 'selecting session', session_name)
-        client = self.chat_data[client_id]
-        if client.select_session(session_name):
-            return f'session `{session_name}` not exist', self.STATUS_ERR
-        return client.current_session.messages, self.STATUS_OK
+        return response
 
     def active(self, client_id):
-        Color.timestamp()
-        print(client_id, 'getting active sessions')
+        self._assert_registered(client_id)
         client = self.chat_data[client_id]
         if len(client.sessions) == 0:
-            return 'you have no active sessions'
+            response = 'you have no active sessions'
         else:
-            return 'active sessions:\n' + '\n'.join([session for session in client.sessions])
+            response = 'active sessions:\n' + '\n'.join([session for session in client.sessions])
+        Color.timestamp()
+        print(client_id, 'getting active sessions')
+        return response
 
     def query(self, client_id, request):
+        self._assert_registered(client_id)
+        self._assert_active_session(client_id)
+        client = self.chat_data[client_id]
         Color.timestamp()
         print(Color.W('REQUEST: ') + request)
-        client = self.chat_data[client_id]
-
         response = self._query(request)
         Color.timestamp()
         print(Color.W('RESPONSE: ') + response)
@@ -129,6 +138,18 @@ class GPT():
 
     def _query(self, message):
         return message.upper()
+
+    def _assert_not_registered(self, client_id):
+        if client_id in self.chat_data:
+            raise self.GPTerror('you are already registered')
+
+    def _assert_registered(self, client_id):
+        if client_id not in self.chat_data:
+            raise self.GPTerror('you are not registered, type /help')
+
+    def _assert_active_session(self, client_id):
+        if self.chat_data[client_id].current_session is None:
+            raise self.GPTerror('you have no active sessions, type /help')
 
     def __repr__(self):
         repr = ''

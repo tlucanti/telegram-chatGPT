@@ -38,6 +38,10 @@ class Color():
         return Color._paint(Color._Yellow, msg)
 
     @staticmethod
+    def P(msg):
+        return Color._paint(Color._Purple, msg)
+
+    @staticmethod
     def _paint(color, msg):
         return color + msg + Color._Reset
 
