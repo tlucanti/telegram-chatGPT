@@ -39,6 +39,8 @@ class GPT():
             self.session_counter = 0
 
         def add_session(self, name):
+            if len(self.sessions) >= 10:
+                raise GPT.GPTerror('you have session limit')
             self.session_counter += 1
             if name is None:
                 name = f'session {self.session_counter}'
@@ -127,8 +129,6 @@ class GPT():
             '  create new chat session with [session_name]\n' \
             '/select [session_name]\n' \
             '  select other session by [session_name]\n' \
-            '/active\n' \
-            '  list active chat sessions'
 
     def register_message(self, client_id, message_id):
         self.chat_data[client_id].register_message(message_id)

@@ -54,8 +54,8 @@ class TelegramBot():
     def _set_handlers(self, handler):
         start_handler = CommandHandler('start', handler.start)
         new_session_handler = CommandHandler('new', handler.new)
+        delete_session_handler = CommandHandler('delete', handler.delete)
         select_session_handler = CommandHandler('select', handler.select)
-        active_sessions_handler = CommandHandler('active', handler.active)
         help_handler = CommandHandler('help', handler.help)
         debug_handler = CommandHandler('debug', handler.debug)
         echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), handler.echo)
@@ -63,7 +63,7 @@ class TelegramBot():
         self.application.add_handler(start_handler)
         self.application.add_handler(new_session_handler)
         self.application.add_handler(select_session_handler)
-        self.application.add_handler(active_sessions_handler)
+        self.application.add_handler(delete_session_handler)
         self.application.add_handler(help_handler)
         self.application.add_handler(debug_handler)
         self.application.add_handler(echo_handler)
