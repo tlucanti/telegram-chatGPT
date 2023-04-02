@@ -1,5 +1,6 @@
 
 from Color import Color
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 
 class Handler():
     def __init__(self, processor):
@@ -51,9 +52,15 @@ class Handler():
             response = self.processor.active(chat_id)
         except self.processor.ExceptionType as exc:
             response = exc.message
-        msg = await context.bot.send_message(chat_id=chat_id, text=response)
-        self.processor.register_message(chat_id, update.message.id)
-        self.processor.register_message(chat_id, msg.id)
+            msg = await context.bot.send_message(chat_id=chat_id, text=response)
+            self.processor.register_message(chat_id, update.message.id)
+            self.processor.register_message(chat_id, msg.id)
+        keyboard = [
+            [InlineKeyboardButton(session_name, callback_data=session_name)]
+            for session_name in response]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await context.bot.delete_message(chat_id, update.message.id)
+        await update.message.reply_text("active sessions", reply_markup=reply_markup)
 
     async def help(self, update, context):
         chat_id = update.effective_chat.id
@@ -83,6 +90,18 @@ class Handler():
         response = '>>> ' + request + '\n\n' + response
         msg = await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
         self.processor.register_message(chat_id, msg.id)
+
+    async def button(self, update, context):
+        chat_id = update.effective_chat.id
+        query = update.callback_query
+        await query.answer()
+        Color.timestamp()
+        print(f'selected session {query.data}')
+        response = self.processor.select(chat_id, query.data)
+        await query.edit_message_text(text=f'current session: {query.data}')
+        await self._clear_history(context.bot, chat_id)
+        await self._restore_history(context.bot, chat_id, response)
+        self.processor.register_message(chat_id, query.message.id)
 
     async def _clear_history(self, bot, chat_id):
         for message_id in self.processor.get_client_messages(chat_id):

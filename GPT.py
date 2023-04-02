@@ -4,9 +4,6 @@ from Color import Color
 from collections import defaultdict
 
 class GPT():
-    STATUS_OK = 0x0
-    STATUS_ERR = 0x1
-
     ExceptionType = None
 
     class GPTerror(ValueError):
@@ -79,7 +76,7 @@ class GPT():
         self._assert_registered(client_id)
         client = self.chat_data[client_id]
         client.add_session(session_name)
-        response = f'session `{session_name}` created', self.STATUS_OK
+        response = f'session `{session_name}` created'
         Color.timestamp()
         print(Color.Y('new session:'), session_name)
         return response
@@ -97,9 +94,9 @@ class GPT():
         self._assert_registered(client_id)
         client = self.chat_data[client_id]
         if len(client.sessions) == 0:
-            response = 'you have no active sessions'
+            raise self.GPTerror('you have no active sessions')
         else:
-            response = 'active sessions:\n' + '\n'.join([session for session in client.sessions])
+            response = client.sessions
         Color.timestamp()
         print(client_id, 'getting active sessions')
         return response

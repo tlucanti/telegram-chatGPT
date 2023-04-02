@@ -3,7 +3,7 @@ from Color import Color
 import sys
 import logging
 from telegram import Update
-from telegram.ext import filters, MessageHandler, ApplicationBuilder, ContextTypes, CommandHandler
+from telegram.ext import filters, MessageHandler, ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
 from Handler import Handler
 from GPT import GPT
 import traceback
@@ -59,6 +59,7 @@ class TelegramBot():
         help_handler = CommandHandler('help', handler.help)
         debug_handler = CommandHandler('debug', handler.debug)
         echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), handler.echo)
+        button_handler = CallbackQueryHandler(handler.button)
         self.application.add_handler(start_handler)
         self.application.add_handler(new_session_handler)
         self.application.add_handler(select_session_handler)
@@ -66,6 +67,7 @@ class TelegramBot():
         self.application.add_handler(help_handler)
         self.application.add_handler(debug_handler)
         self.application.add_handler(echo_handler)
+        self.application.add_handler(button_handler)
         self.application.add_error_handler(self._error_handler)
         Color.OK('handlers set')
 
