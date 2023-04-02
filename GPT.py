@@ -36,13 +36,18 @@ class GPT():
             self.sessions = dict()
             self.current_session = None
             self.message_ids = []
+            self.session_counter = 0
 
         def add_session(self, name):
+            self.session_counter += 1
+            if name is None:
+                name = f'session {self.session_counter}'
             self.current_session = name
             if name in self.sessions:
                 raise GPT.GPTerror(f'session `{name}` already exists')
             self.sessions[name] = GPT.Session(name)
             self.current_session = self.sessions[name]
+            return name
 
         def select_session(self, name):
             if name not in self.sessions:
@@ -75,7 +80,7 @@ class GPT():
     def new(self, client_id, session_name):
         self._assert_registered(client_id)
         client = self.chat_data[client_id]
-        client.add_session(session_name)
+        session_name = client.add_session(session_name)
         response = f'session `{session_name}` created'
         Color.timestamp()
         print(Color.Y('new session:'), session_name)

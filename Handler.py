@@ -1,6 +1,6 @@
 
 from Color import Color
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, MenuButtonCommands
 
 class Handler():
     def __init__(self, processor):
@@ -13,15 +13,25 @@ class Handler():
         chat_id = update.effective_chat.id
         try:
             response = self.processor.start(chat_id)
-        except processor.ExceptionType as exc:
+        except self.processor.ExceptionType as exc:
             response = exc.message
         msg = await context.bot.send_message(chat_id=chat_id, text=response)
         self.processor.register_message(chat_id, update.message.id)
         self.processor.register_message(chat_id, msg.id)
+        await context.bot.set_my_commands([
+            ('/start', 'start'),
+            ('/help', 'RTFM'),
+            ('/new', 'new session'),
+            ('/active', 'list active session'),
+            ('/select', 'select session')
+        ])
+        await context.bot.set_chat_menu_button(chat_id=chat_id, menu_button=MenuButtonCommands())
 
     async def new(self, update, context):
         chat_id = update.effective_chat.id
         request = update.message.text[4:].strip()
+        if request == '':
+            request = None
         self.processor.register_message(chat_id, update.message.id)
         try:
             response = self.processor.new(chat_id, request)
