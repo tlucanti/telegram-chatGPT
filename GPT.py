@@ -1,6 +1,7 @@
 
 import time
 from Color import Color
+from collections import defaultdict
 
 class GPT():
     STATUS_OK = 0x0
@@ -33,8 +34,8 @@ class GPT():
             return f'Session: {self.messages}'
 
     class Client():
-        def __init__(self, id):
-            self.id = id
+        def __init__(self):
+            self.registered = False
             self.sessions = dict()
             self.current_session = None
             self.message_ids = []
@@ -64,11 +65,11 @@ class GPT():
 
     def __init__(self):
         self.ExceptionType = self.GPTerror
-        self.chat_data = dict()
+        self.chat_data = defaultdict(self.Client)
 
     def start(self, client_id):
         self._assert_not_registered(client_id)
-        self.chat_data[client_id] = self.Client(client_id)
+        self.chat_data[client_id].registered = True
         response = 'здарова че'
         Color.timestamp()
         print(Color.P('NEW CLIENT') + Color.W(f' : {client_id}'))
@@ -140,11 +141,11 @@ class GPT():
         return message.upper()
 
     def _assert_not_registered(self, client_id):
-        if client_id in self.chat_data:
+        if self.chat_data[client_id].registered:
             raise self.GPTerror('you are already registered')
 
     def _assert_registered(self, client_id):
-        if client_id not in self.chat_data:
+        if not self.chat_data[client_id].registered:
             raise self.GPTerror('you are not registered, type /help')
 
     def _assert_active_session(self, client_id):

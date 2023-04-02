@@ -24,13 +24,13 @@ class Handler():
         self.processor.register_message(chat_id, update.message.id)
         try:
             response = self.processor.new(chat_id, request)
-        except processor.ExceptionType as exc:
+        except self.processor.ExceptionType as exc:
             msg = await context.bot.send_message(chat_id=chat_id, text=exc.message)
             self.processor.register_message(chat_id, msg.id)
             return
         msg = await context.bot.send_message(chat_id=chat_id, text=response)
-        self.processor.register_message(chat_id, msg.id)
         await self._clear_history(context.bot, chat_id)
+        self.processor.register_message(chat_id, msg.id)
 
     async def select(self, update, context):
         chat_id = update.effective_chat.id
@@ -38,7 +38,7 @@ class Handler():
         self.processor.register_message(chat_id, update.message.id)
         try:
             response = self.processor.select(chat_id, request)
-        except processor.ExceptionType as exc:
+        except self.processor.ExceptionType as exc:
             msg = await context.bot.send_message(chat_id=chat_id, text=exc.message)
             self.processor.register_message(chat_id, msg.id)
             return
@@ -47,7 +47,10 @@ class Handler():
 
     async def active(self, update, context):
         chat_id = update.effective_chat.id
-        response = self.processor.active(chat_id)
+        try:
+            response = self.processor.active(chat_id)
+        except self.processor.ExceptionType as exc:
+            response = exc.message
         msg = await context.bot.send_message(chat_id=chat_id, text=response)
         self.processor.register_message(chat_id, update.message.id)
         self.processor.register_message(chat_id, msg.id)
