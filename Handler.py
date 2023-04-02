@@ -3,6 +3,9 @@ from Color import Color
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, MenuButtonCommands
 
 class Handler():
+    SESSION_SEL = 0x1
+    SESSION_DEL = 0x2
+
     def __init__(self, processor):
         self.processor = processor
 
@@ -10,6 +13,8 @@ class Handler():
         await self._echo(update, context)
 
     async def start(self, update, context):
+        if update.message is None:
+            return
         chat_id = update.effective_chat.id
         try:
             response = self.processor.start(chat_id)
@@ -22,11 +27,14 @@ class Handler():
             ('/start', 'start'),
             ('/help', 'RTFM'),
             ('/new', 'new session'),
-            ('/select', 'select session')
+            ('/select', 'select session'),
+            ('/delete', 'end session')
         ])
         await context.bot.set_chat_menu_button(chat_id=chat_id, menu_button=MenuButtonCommands())
 
     async def new(self, update, context):
+        if update.message is None:
+            return
         chat_id = update.effective_chat.id
         request = update.message.text[4:].strip()
         if request == '':
@@ -44,6 +52,8 @@ class Handler():
         self.processor.register_message(chat_id, msg.id)
 
     async def select(self, update, context):
+        if update.message is None:
+            return
         chat_id = update.effective_chat.id
         request = update.message.text[7:].strip()
         if request == '':
@@ -73,15 +83,52 @@ class Handler():
             self.processor.register_message(chat_id, update.message.id)
             return
         await context.bot.delete_message(chat_id, update.message.id)
+        button_type = self.SESSION_SEL
         keyboard = [
-            [InlineKeyboardButton(session_name, callback_data=session_name)]
+            [InlineKeyboardButton(session_name, callback_data='S' + session_name)]
             for session_name in response]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        msg = await update.message.reply_text("active sessions", reply_markup=reply_markup)
+        msg = await update.message.reply_text("select session:", reply_markup=reply_markup)
         self.processor.register_message(chat_id, msg.id)
 
     async def delete(self, update, context):
-        pass
+        if update.message is None:
+            return
+        chat_id = update.effective_chat.id
+        request = update.message.text[7:].strip()
+        if request == '':
+            return await self._delete_buttons(update, context)
+        try:
+            do_clear_history = self.processor.delete(chat_id, request)
+        except self.processor.ExceptionType as exc:
+            msg = await context.bot.send_message(chat_id=chat_id, text=exc.message)
+            self.processor.register_message(chat_id, msg.id)
+            self.processor.register_message(chat_id, update.message.id)
+            return
+        await context.bot.delete_message(chat_id, update.message.id)
+        if do_clear_history:
+            await self._clear_history(context.bot, chat_id)
+        text = f'deleted session: {request}'
+        msg = await context.bot.send_message(chat_id=chat_id, text=text)
+        self.processor.register_message(chat_id, msg.id)
+
+    async def _delete_buttons(self, update, context):
+        chat_id = update.effective_chat.id
+        try:
+            response = self.processor.active(chat_id)
+        except self.processor.ExceptionType as exc:
+            msg = await context.bot.send_message(chat_id=chat_id, text=exc.message)
+            self.processor.register_message(chat_id, msg.id)
+            self.processor.register_message(chat_id, update.message.id)
+            return
+        await context.bot.delete_message(chat_id, update.message.id)
+        button_type = self.SESSION_DEL
+        keyboard = [
+            [InlineKeyboardButton(session_name, callback_data='D' + session_name)]
+            for session_name in response]
+        #keyboard += [[InlineKeyboardButton('clear all', callback_data=None)]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        msg = await update.message.reply_text("session to delete:", reply_markup=reply_markup)
 
     async def help(self, update, context):
         chat_id = update.effective_chat.id
@@ -113,23 +160,56 @@ class Handler():
         self.processor.register_message(chat_id, msg.id)
 
     async def button(self, update, context):
+        action_type = update.callback_query.data[0]
+        if action_type == 'S':
+            return await self._button_pressed_select(update, context)
+        elif action_type == 'D':
+            return await self._button_pressed_delete(update, context)
+        else:
+            Color.FAILED(f'unknown button type: {action_type}')
+
+    async def _button_pressed_delete(self, update, context):
         chat_id = update.effective_chat.id
         query = update.callback_query
+        session_name = query.data[1:]
+        await query.answer()
+        await context.bot.delete_message(chat_id, query.message.id)
+        try:
+            do_clear_history = self.processor.delete(chat_id, session_name)
+        except self.processor.ExceptionType as exc:
+            msg = await context.bot.send_message(chat_id=chat_id, text=exc.message)
+            self.processor.register_message(chat_id, msg.id)
+            return
+        if session_name is None:
+            text = 'deleted all sessions'
+        elif do_clear_history:
+            text = f'deleted current session {session_name}'
+        else:
+            text=f'deleted session {session_name}'
+        msg = await context.bot.send_message(chat_id=chat_id, text=text)
+        if do_clear_history:
+            await self._clear_history(context.bot, chat_id)
+        self.processor.register_message(chat_id, msg.id)
+
+    async def _button_pressed_select(self, update, context):
+        chat_id = update.effective_chat.id
+        query = update.callback_query
+        session_name = query.data[1:]
         await query.answer()
         Color.timestamp()
-        print(f'selected session {query.data}')
+        print(f'selecting session {session_name}')
         try:
-            response = self.processor.select(chat_id, query.data)
+            response = self.processor.select(chat_id, session_name)
         except self.processor.ExceptionType as exc:
             msg = await context.bot.send_message(chat_id=chat_id, text=exc.message)
             self.processor.register_message(chat_id, query.message.id)
             self.processor.register_message(chat_id, msg.id)
             return
-        text=f'current session: {query.data}'
+        text=f'current session: {session_name}'
         msg = await context.bot.send_message(chat_id=chat_id, text=text)
-        self.processor.register_message(chat_id, msg.id)
         await self._clear_history(context.bot, chat_id)
         await self._restore_history(context.bot, chat_id, response)
+        self.processor.register_message(chat_id, msg.id)
 
     async def _clear_history(self, bot, chat_id):
         for message_id in self.processor.get_client_messages(chat_id):

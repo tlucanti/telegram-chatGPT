@@ -61,6 +61,9 @@ class GPT():
                 raise GPT.GPTerror(f'session `{name}` does not exist')
             del self.sessions[name]
 
+        def remoe_all_sessions(self, name):
+            self.sessions = dict()
+
         def register_message(self, message_id):
             self.message_ids.append(message_id)
 
@@ -96,6 +99,24 @@ class GPT():
         Color.timestamp()
         print(client_id, 'selecting session', session_name)
         return response
+
+    def delete(self, client_id, session_name):
+        self._assert_registered(client_id)
+        client = self.chat_data[client_id]
+        if session_name is None:
+            Color.timestamp()
+            print('deleting all sessions')
+            client.current_session = None
+            cilent.remove_all_sessions()
+            return True
+        was_current_session = False
+        if client.current_session.name == session_name:
+            client.current_session = None
+            was_current_session = True
+        Color.timestamp()
+        print('deleing session', session_name)
+        client.remove_session(session_name)
+        return was_current_session
 
     def active(self, client_id):
         self._assert_registered(client_id)
