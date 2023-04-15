@@ -70,7 +70,8 @@ class Engine():
         def __repr__(self):
             return f'Client: {self.sessions}'
 
-    def __init__(self):
+    def __init__(self, gpt):
+        self.gpt = gpt
         self.ExceptionType = self.EngineError
         self.chat_data = defaultdict(self.Client)
 
@@ -135,7 +136,7 @@ class Engine():
         client = self.chat_data[client_id]
         Color.timestamp()
         print(Color.W('REQUEST: ') + request)
-        response = self._query(request)
+        response = self.gpt.query(request)
         Color.timestamp()
         print(Color.W('RESPONSE: ') + response)
         client.current_session.add_message(request, response)

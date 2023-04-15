@@ -1,10 +1,20 @@
 
 import time
 
+_begin = True
+def log(*args, **kwargs):
+    global _begin
+    if _begin:
+        with open('log.txt', 'w'):
+            _begin = False
+    with open('log.txt', 'a') as f:
+        print(*args, **kwargs, file=f)
+        print(*args, **kwargs)
+
 class Color():
     @staticmethod
     def OK(msg):
-        print(Color._White + '[  ',
+        log(Color._White + '[  ',
               Color._Green + 'OK',
               Color._White + '  ] ',
               msg, Color._Reset,
@@ -12,7 +22,7 @@ class Color():
 
     @staticmethod
     def FAILED(msg):
-        print(Color._White + '[',
+        log(Color._White + '[',
               Color._Red + 'FAILED',
               Color._White + '] ',
               msg, Color._Reset,
@@ -20,7 +30,7 @@ class Color():
 
     @staticmethod
     def timestamp():
-        print(Color._White + time.strftime('[%H:%M:%S'),
+        log(Color._White + time.strftime('[%H:%M:%S'),
               f'.{int(time.time() % 1 * 10000):04}] ',
               Color._Reset, sep='', end='')
 
@@ -38,12 +48,22 @@ class Color():
         return Color._paint(Color._Yellow, msg)
 
     @staticmethod
+    def R(msg):
+        return Color._paint(Color._Red, msg)
+
+    @staticmethod
     def P(msg):
         return Color._paint(Color._Purple, msg)
 
     @staticmethod
+    def grey(msg):
+        return Color._paint(Color._grey, msg)
+
+    @staticmethod
     def _paint(color, msg):
         return color + msg + Color._Reset
+
+    _grey   = '\033[1;90mm'
 
     _Black  = '\033[1;30m'
     _Red    = '\033[1;31m'
