@@ -5,7 +5,7 @@ import logging
 from telegram import Update
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
 from Handler import Handler
-from GPT import GPT
+from Engine import Engine
 import traceback
 
 #logging.basicConfig(
@@ -29,13 +29,13 @@ class TelegramBot():
 
     def _get_token(self):
         try:
-            f = open('./.token', 'r')
+            f = open('./.telegram.token', 'r')
             token = f.read().strip()
             f.close()
             Color.OK('token obtained')
             return token
         except FileNotFoundError as e:
-            Color.FAILED('place your api token in `.token` file')
+            Color.FAILED('place your telegram api token in `.telegram.token` file')
             sys.exit(1)
 
     def _build(self):
@@ -73,8 +73,8 @@ class TelegramBot():
 
 
 if __name__ == '__main__':
-    gpt = GPT()
-    handler = Handler(gpt)
+    engine = Engine()
+    handler = Handler(engine)
     bot = TelegramBot(handler)
     bot.start()
 

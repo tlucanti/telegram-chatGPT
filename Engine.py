@@ -3,10 +3,10 @@ import time
 from Color import Color
 from collections import defaultdict
 
-class GPT():
+class Engine():
     ExceptionType = None
 
-    class GPTerror(ValueError):
+    class EngineError(ValueError):
         def __init__(self, message):
             super().__init__(message)
             self.message = message
@@ -25,7 +25,7 @@ class GPT():
             self.messages = []
 
         def add_message(self, request, response):
-            self.messages.append(GPT.Message(request, response))
+            self.messages.append(Engine.Message(request, response))
 
         def __repr__(self):
             return f'Session: {self.messages}'
@@ -40,25 +40,25 @@ class GPT():
 
         def add_session(self, name):
             if len(self.sessions) >= 10:
-                raise GPT.GPTerror('you have session limit')
+                raise Engine.GPTerror('you have session limit')
             self.session_counter += 1
             if name is None:
                 name = f'session {self.session_counter}'
             self.current_session = name
             if name in self.sessions:
-                raise GPT.GPTerror(f'session `{name}` already exists')
-            self.sessions[name] = GPT.Session(name)
+                raise Engine.GPTerror(f'session `{name}` already exists')
+            self.sessions[name] = Engine.Session(name)
             self.current_session = self.sessions[name]
             return name
 
         def select_session(self, name):
             if name not in self.sessions:
-                raise GPT.GPTerror(f'session `{name}` does not exists')
+                raise Engine.GPTerror(f'session `{name}` does not exists')
             self.current_session = self.sessions[name]
 
         def remove_session(self, name):
             if name not in self.sessions:
-                raise GPT.GPTerror(f'session `{name}` does not exist')
+                raise Engine.GPTerror(f'session `{name}` does not exist')
             del self.sessions[name]
 
         def remoe_all_sessions(self, name):
@@ -71,7 +71,7 @@ class GPT():
             return f'Client: {self.sessions}'
 
     def __init__(self):
-        self.ExceptionType = self.GPTerror
+        self.ExceptionType = self.EngineError
         self.chat_data = defaultdict(self.Client)
 
     def start(self, client_id):
@@ -122,7 +122,7 @@ class GPT():
         self._assert_registered(client_id)
         client = self.chat_data[client_id]
         if len(client.sessions) == 0:
-            raise self.GPTerror('you have no active sessions')
+            raise self.EngineError('you have no active sessions')
         else:
             response = client.sessions
         Color.timestamp()
@@ -165,15 +165,15 @@ class GPT():
 
     def _assert_not_registered(self, client_id):
         if self.chat_data[client_id].registered:
-            raise self.GPTerror('you are already registered')
+            raise self.EngineError('you are already registered')
 
     def _assert_registered(self, client_id):
         if not self.chat_data[client_id].registered:
-            raise self.GPTerror('you are not registered, type /help')
+            raise self.EngineError('you are not registered, type /help')
 
     def _assert_active_session(self, client_id):
         if self.chat_data[client_id].current_session is None:
-            raise self.GPTerror('you have no active sessions, type /help')
+            raise self.EnginEerror('you have no active sessions, type /help')
 
     def __repr__(self):
         repr = ''

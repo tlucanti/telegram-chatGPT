@@ -4,4 +4,6 @@
 *.swn
 __pycache__
 
-.token
+.telegram.token
+.openai.token
+.env
