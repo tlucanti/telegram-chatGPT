@@ -7,6 +7,7 @@ from GPT import GPT
 from collections import defaultdict
 from Color import Color
 from Color import log
+import sys
 
 class SimpleGPTbot():
     WAIT_FOR_ROLE = 0x1
