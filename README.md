@@ -75,6 +75,5 @@ it will disconnect process from current shell (and you can close it) and write a
 
 To stop daemon just find process with `px aux` and `kill` it:
 ```shell
-ps aux | grep 'python3 SimpleGPTbot.py'
-kill 130822
+kill $(ps aux | grep 'python3 SimpleGPTbot.py' | awk '{print $2}')
 ```
