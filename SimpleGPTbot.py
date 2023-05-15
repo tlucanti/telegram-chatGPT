@@ -126,19 +126,25 @@ class SimpleGPTbot():
         self.users[chat_id] = GPT()
         Color.timestamp()
         log('help')
-        text = 'help:\n' \
+        text = '***help***:\n' \
             '\n' \
-            '/start\n' \
-            '  start conversation\n' \
-            '/help\n' \
-            '  prints this message\n' \
-            '/reset\n' \
-            '  reset gpt instance\n' \
-            '/temp\n' \
-            '  change temperature value\n' \
-            '/role\n' \
-            '  change gpt role'
-        await context.bot.send_message(chat_id=chat_id, text=text)
+            '/start:\n' \
+            '    _start_ _conversation_\n' \
+            '/reset:\n' \
+            '    _reset_ _gpt_ _instance_\n' \
+            '/temp:\n' \
+            '    _change_ _temperature_ _value_\n' \
+            '/role:\n' \
+            '    _change_ _gpt_ _role_\n' \
+            '/help:\n' \
+            '    _prints_ _this_ _message_\n' \
+            '\n' \
+            'for more info see [here](https://github.com/tlucanti/telegram-chatGPT/blob/master/README.md)\n' \
+            '***\(c\) tlucanti***'
+        await context.bot.send_message(chat_id=chat_id,
+                                    text=text,
+                                    parse_mode='MarkdownV2',
+                                    disable_web_page_preview=True)
 
     async def new_client(self, update, context):
         chat_id = update.effective_chat.id
