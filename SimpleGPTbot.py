@@ -11,6 +11,7 @@ import sys
 
 class SimpleGPTbot():
     WAIT_FOR_ROLE = 0x1
+    AUTHORIZED_USERS = { 680657672, 923224959 }
 
     def __init__(self, token=None):
         if token is None:
@@ -42,16 +43,26 @@ class SimpleGPTbot():
 
     async def handler(self, update, context):
         chat_id = update.effective_chat.id
+        prot = self.not_authorized(chat_id)
+        if prot:
+            await context.bot.send_message(chat_id=chat_id, text=prot)
+            return
         request = update.message.text
         user = self.users[chat_id]
         Color.timestamp()
         log(Color.W(f'{chat_id} >>>'), request)
         response = user.query(request)
         log(Color.W(f'{chat_id} <<<'), response)
-        await context.bot.send_message(chat_id=chat_id, text=response)
+        await context.bot.send_message(chat_id=chat_id,
+                                    text=response,
+                                    parse_mode='MarkdownV2')
 
     async def reset(self, update, context):
         chat_id = update.effective_chat.id
+        prot = self.not_authorized(chat_id)
+        if prot:
+            await context.bot.send_message(chat_id=chat_id, text=prot)
+            return
         self.users[chat_id].reset()
         Color.timestamp()
         log(Color.P('RESET') + Color.W(f' : {chat_id}'))
@@ -59,6 +70,10 @@ class SimpleGPTbot():
 
     async def temp(self, update, context):
         chat_id = update.effective_chat.id
+        prot = self.not_authorized(chat_id)
+        if prot:
+            await context.bot.send_message(chat_id=chat_id, text=prot)
+            return
         user = self.users[chat_id]
         Color.timestamp()
         log('temp')
@@ -73,6 +88,10 @@ class SimpleGPTbot():
 
     async def role(self, update, context):
         chat_id = update.effective_chat.id
+        prot = self.not_authorized(chat_id)
+        if prot:
+            await context.bot.send_message(chat_id=chat_id, text=prot)
+            return
         user = self.users[chat_id]
         Color.timestamp()
         log('role')
@@ -82,6 +101,10 @@ class SimpleGPTbot():
 
     async def cancel(self, update, context):
         chat_id = update.effective_chat.id
+        prot = self.not_authorized(chat_id)
+        if prot:
+            await context.bot.send_message(chat_id=chat_id, text=prot)
+            return
         Color.timestamp()
         log('cancel role change')
         await context.bot.send_message(chat_id=chat_id, text='cancelled')
@@ -100,6 +123,10 @@ class SimpleGPTbot():
 
     async def button(self, update, context):
         chat_id = update.effective_chat.id
+        prot = self.not_authorized(chat_id)
+        if prot:
+            await context.bot.send_message(chat_id=chat_id, text=prot)
+            return
         user = self.users[chat_id]
         query = update.callback_query
         await query.answer()
@@ -123,6 +150,10 @@ class SimpleGPTbot():
 
     async def help(self, update, context):
         chat_id = update.effective_chat.id
+        prot = self.not_authorized(chat_id)
+        if prot:
+            await context.bot.send_message(chat_id=chat_id, text=prot)
+            return
         self.users[chat_id] = GPT()
         Color.timestamp()
         log('help')
@@ -148,6 +179,10 @@ class SimpleGPTbot():
 
     async def new_client(self, update, context):
         chat_id = update.effective_chat.id
+        prot = self.not_authorized(chat_id)
+        if prot:
+            await context.bot.send_message(chat_id=chat_id, text=prot)
+            return
         request = update.message.text[7:].strip()
         Color.timestamp()
         log(Color.P('NEW CLIENT') + Color.W(f' : {chat_id}'))
@@ -159,6 +194,14 @@ class SimpleGPTbot():
             ('/role', 'change chat role')
         ])
         await context.bot.set_chat_menu_button(chat_id=chat_id, menu_button=MenuButtonCommands())
+        await context.bot.send_message(chat_id=chat_id, text='hello, this is gpt bot, type /help for help')
+
+    def not_authorized(self, chat_id):
+        if chat_id in self.AUTHORIZED_USERS:
+            return False
+        Color.timestamp()
+        log(Color.Y('rejected ') + str(chat_id))
+        return f'you are not authorized to use bot. ID: {chat_id}'
 
     @staticmethod
     def get_token(path='./.simplebot.token'):
