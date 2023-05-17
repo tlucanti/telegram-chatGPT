@@ -11,7 +11,11 @@ import sys
 
 class SimpleGPTbot():
     WAIT_FOR_ROLE = 0x1
-    AUTHORIZED_USERS = { 680657672, 923224959 }
+    AUTHORIZED_USERS = {
+            680657672, # me
+            923224959, # kvon
+            298995868, # vlad danilkin
+    }
 
     def __init__(self, token=None):
         if token is None:

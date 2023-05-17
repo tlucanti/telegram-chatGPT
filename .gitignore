@@ -7,3 +7,6 @@ __pycache__
 log.txt
 .*.token
 .env
+
+test*.py
+
