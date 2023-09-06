@@ -7,8 +7,8 @@ class GPT():
 
     def __init__(self, role=None):
         if role is None:
-            role = 'You are an article writing assistant'
-            #role = 'You are a intelligent assistant'
+            #role = 'You are an article writing assistant'
+            role = 'You are a intelligent assistant'
         openai.api_key = self._get_token()
         self.model = 'gpt-3.5-turbo'
         self.temperature = 1

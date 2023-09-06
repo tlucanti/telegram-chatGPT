@@ -15,6 +15,10 @@ class SimpleGPTbot():
             680657672, # me
             923224959, # kvon
             298995868, # vlad danilkin
+            483126577, # alexey loginov
+            449211368, # alexey filippov
+            912224614, # kvon Katya
+            1012183018, # dad
     }
 
     def __init__(self, token=None):
@@ -58,8 +62,7 @@ class SimpleGPTbot():
         response = user.query(request)
         log(Color.W(f'{chat_id} <<<'), response)
         await context.bot.send_message(chat_id=chat_id,
-                                    text=response,
-                                    parse_mode='MarkdownV2')
+                                    text=response)
 
     async def reset(self, update, context):
         chat_id = update.effective_chat.id
