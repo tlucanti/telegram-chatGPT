@@ -5,8 +5,10 @@
 __pycache__
 
 log.txt
+log
 .*.token
 .env
 
 test*.py
 
+.openai.token.old

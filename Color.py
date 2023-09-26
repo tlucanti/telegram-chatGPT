@@ -3,6 +3,9 @@ import time
 
 _begin = True
 def log(*args, **kwargs):
+    print(*args, **kwargs)
+    return
+
     global _begin
     if _begin:
         with open('log.txt', 'w'):
