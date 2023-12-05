@@ -8,9 +8,9 @@ class GPT():
     def __init__(self, role=None):
         if role is None:
             #role = 'You are an article writing assistant'
-            role = 'You are a intelligent assistant'
-        openai.api_key = self._get_token()
-        self.model = 'gpt-3.5-turbo'
+            role = 'You are an intelligent assistant'
+        self.client = openai.OpenAI(api_key=self._get_token())
+        self.model = 'gpt-4'
         self.temperature = 1
         self.temp_value = 'normal'
         self.role = role
@@ -23,7 +23,7 @@ class GPT():
             'role': 'user',
             'content': prompt
         })
-        response = openai.ChatCompletion.create(
+        response = self.client.chat.completions.create(
             model=self.model, messages=self.messages, temperature=self.temperature
         )
         Color.timestamp()
@@ -61,14 +61,14 @@ class GPT():
             f = open('./.openai.token', 'r')
             token = f.read().strip()
             f.close()
-            Color.OK('token obtained')
+            Color.OK('OpenAI token obtained')
             return token
         except FileNotFoundError as e:
             Color.FAILED('place your openai api token in `.openai.token` file')
             sys.exit(1)
 
 if __name__ == '__main__':
-    gpt = GPT('assistant for solving economic problems')
+    gpt = GPT()
     while True:
         input()
         with open('test.txt') as f:

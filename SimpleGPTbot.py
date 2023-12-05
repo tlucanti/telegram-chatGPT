@@ -216,6 +216,7 @@ class SimpleGPTbot():
             f = open(path, 'r')
             token = f.read().strip()
             f.close()
+            Color.OK('Telegram token obtained')
             return token
         except FileNotFoundError as e:
             Color.FAILED('place your telegram api token in `.simplebot.token` file')
