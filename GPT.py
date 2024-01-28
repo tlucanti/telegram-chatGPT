@@ -5,6 +5,8 @@ from Color import log
 
 class GPT():
 
+    MAX_CONTEXT = 2000
+
     def __init__(self, role=None):
         if role is None:
             #role = 'You are an article writing assistant'
@@ -18,15 +20,27 @@ class GPT():
             'role': 'system',
             'content': self.role}]
 
+    def cut_context(self, context):
+        ret = []
+        cont_len = 0
+        for c in context[::-1]:
+            ret.append(c)
+            cont_len += len(c['content'])
+            if cont_len > self.MAX_CONTEXT:
+                break
+        return ret[::-1], cont_len
+
     def query(self, prompt, role='user'):
         self.messages.append({
             'role': 'user',
             'content': prompt
         })
+        self.messages, cont_len = self.cut_context(self.messages)
         response = self.client.chat.completions.create(
             model=self.model, messages=self.messages, temperature=self.temperature
         )
         Color.timestamp()
+        log(f'context size: {cont_len}')
         try:
             reply = response.choices[0].message.content
             log(str(response))
