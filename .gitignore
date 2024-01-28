@@ -4,11 +4,10 @@
 *.swn
 __pycache__
 
-log.txt
-log
-.*.token
+*.txt
+*.token
+*.token.old
 .env
 
 test*.py
 
-.openai.token.old
