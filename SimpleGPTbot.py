@@ -16,7 +16,8 @@ class SimpleGPTbot():
             923224959, # kvon
             298995868, # vlad danilkin
             483126577, # alexey loginov
-            449211368, # alexey filippov
+            449211368, # halip
+            66446688, # halip sister
             912224614, # kvon Katya
             1012183018, # dad
     }
@@ -190,6 +191,7 @@ class SimpleGPTbot():
         if prot:
             await context.bot.send_message(chat_id=chat_id, text=prot)
             return
+        self.users[chat_id].set_role()
         request = update.message.text[7:].strip()
         Color.timestamp()
         log(Color.P('NEW CLIENT') + Color.W(f' : {chat_id}'))

@@ -6,11 +6,11 @@ from Color import log
 class GPT():
 
     MAX_CONTEXT = 2000
+    DEFAULT_ROLE = 'You are an intelligent assistant'
 
     def __init__(self, role=None):
         if role is None:
-            #role = 'You are an article writing assistant'
-            role = 'You are an intelligent assistant'
+            role = self.DEFAULT_ROLE
         self.client = openai.OpenAI(api_key=self._get_token())
         self.model = 'gpt-4'
         self.temperature = 1
@@ -67,7 +67,9 @@ class GPT():
     def get_role(self):
         return self.role
 
-    def set_role(self, role):
+    def set_role(self, role=None):
+        if role is None:
+            role = self.DEFAULT_ROLE
         self.role = role
 
     def _get_token(self):
