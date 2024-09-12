@@ -36,17 +36,22 @@ class GPT():
             'content': prompt
         })
         self.messages, cont_len = self.cut_context(self.messages)
-        response = self.client.chat.completions.create(
-            model=self.model, messages=self.messages, temperature=self.temperature
-        )
+        response = None
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model, messages=self.messages, temperature=self.temperature
+            )
+        except openai.RateLimitError:
+            log(Color.R('RATE LIMIT ERROR'))
+            return '[INTERNAL ERROR]: бабло кончилось, наболтались'
+        except Exception as e:
+            log(Color.R(str(response)))
+            return f'[INTERNAL ERROR]: {e}'
+
         Color.timestamp()
         log(f'context size: {cont_len}')
-        try:
-            reply = response.choices[0].message.content
-            log(str(response))
-        except Exception:
-            log(Color.R(str(response)))
-            return 'ERROR\n' + str(response)
+        reply = response.choices[0].message.content
+
         self.messages.append({
             'role': 'assistant',
             'content': reply})

@@ -20,6 +20,8 @@ class SimpleGPTbot():
             66446688, # halip sister
             912224614, # kvon Katya
             1012183018, # dad
+            6516181038, # eestelle
+            434946589, # starosta
     }
 
     def __init__(self, token=None):
@@ -56,6 +58,7 @@ class SimpleGPTbot():
         if prot:
             await context.bot.send_message(chat_id=chat_id, text=prot)
             return
+
         request = update.message.text
         user = self.users[chat_id]
         Color.timestamp()
@@ -63,7 +66,7 @@ class SimpleGPTbot():
         response = user.query(request)
         log(Color.W(f'{chat_id} <<<'), response)
         await context.bot.send_message(chat_id=chat_id,
-                                    text=response)
+                                        text=response)
 
     async def reset(self, update, context):
         chat_id = update.effective_chat.id
@@ -162,7 +165,6 @@ class SimpleGPTbot():
         if prot:
             await context.bot.send_message(chat_id=chat_id, text=prot)
             return
-        self.users[chat_id] = GPT()
         Color.timestamp()
         log('help')
         text = '***help***:\n' \
